@@ -1,13 +1,15 @@
 'use strict';
 const REPO='panicsell/auto-web-home',REF='routing',AAD=new TextEncoder().encode('leaderflow-auto-home-v1');
 const $=id=>document.getElementById(id);
-let route=null,busy=false,lastCheck=0,key=null;
+let route=null,busy=false,lastCheck=0,key=null,apiRetryAt=0;
 function bytes(s){return Uint8Array.from(atob(s.replaceAll('-','+').replaceAll('_','/')+'='.repeat((4-s.length%4)%4)),c=>c.charCodeAt(0));}
 function offline(title,description){route=null;$('title').textContent=title;$('description').textContent=description;$('dot').className='';$('open').className='primary disabled';$('open').removeAttribute('href');$('open').setAttribute('aria-disabled','true');}
 async function readEnvelope(api){
+ if(api&&Date.now()<apiRetryAt)throw Error('조회 제한 대기');
  const nonce=Date.now().toString(36);
  const url=api?`https://api.github.com/repos/${REPO}/contents/route.json?ref=${REF}&t=${nonce}`:`https://raw.githubusercontent.com/${REPO}/${REF}/route.json?t=${nonce}`;
  const response=await fetch(url,{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer',signal:AbortSignal.timeout(10000)});
+ if(api&&(response.status===403||response.status===429)){const after=Number(response.headers.get('Retry-After'));const reset=Number(response.headers.get('X-RateLimit-Reset'))*1000;apiRetryAt=after>0?Date.now()+after*1000:reset>Date.now()?reset:Date.now()+60000;}
  if(!response.ok)throw Error('연결 정보 조회 대기');
  const data=await response.json();
  return api?JSON.parse(new TextDecoder().decode(bytes(data.content.replaceAll('\n','')))):data;
