@@ -34,8 +34,8 @@ async function refresh(api=true){
 }
 $('refresh').onclick=()=>{if(Date.now()-lastCheck>3000)refresh(true);};
 $('open').onclick=e=>{if(!route||route.expires<=Date.now()/1000){e.preventDefault();offline('연결 정보 갱신 대기','다시 확인을 눌러 현재 PC를 확인하세요.');refresh(true);}};
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-lastCheck>15000)refresh(false);});
-setInterval(()=>{if(route&&route.expires<=Date.now()/1000)offline('연결 정보 갱신 대기','현재 관리 PC를 다시 확인하고 있습니다.');if(!document.hidden&&Date.now()-lastCheck>30000)refresh(false);},1000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-lastCheck>15000)refresh(true);});
+setInterval(()=>{if(route&&route.expires<=Date.now()/1000)offline('연결 정보 갱신 대기','현재 관리 PC를 다시 확인하고 있습니다.');if(!document.hidden&&Date.now()-lastCheck>75000)refresh(true);},1000);
 (async()=>{
  try{
   const text=new URLSearchParams(location.hash.slice(1)).get('k')||'';
